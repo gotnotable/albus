@@ -14,12 +14,12 @@ class SQLite3Architect(Architect):
         table_name = model.get_table_name()
         self.execute(f'CREATE TABLE {table_name}(id);')
         for name, field in model.enumerate_fields():
-            self.create_field(field)
+            self.create_field(table_name, field)
         self._con.commit()
 
-    def create_field(self, field):
+    def create_field(self, table_name, field):
         name = field.name
-        self.execute(f'ALTER TABLE book ADD COLUMN {name};')
+        self.execute(f'ALTER TABLE {table_name} ADD COLUMN {name};')
         self._con.commit()
 
 

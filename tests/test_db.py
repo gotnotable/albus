@@ -45,3 +45,15 @@ class CreateSimpleModelTest(BaseDbTest):
         self.engine.ddl.create_model(self.Book)
         self.assertColumnExist('book', 'title')
         self.assertColumnExist('book', 'rank')
+
+
+class ModelSaveTest(BaseDbTest):
+
+    def setUp(self):
+        class Book(Model):
+            title = StringField()
+            rank = IntegerField()
+
+        self.Book = Book
+        self.engine = SQLite3Engine(in_memory=True)
+        self.engine.ddl.create_model(self.Book)
