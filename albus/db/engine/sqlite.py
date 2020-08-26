@@ -44,3 +44,15 @@ class SQLite3Engine(Engine):
 
     def cursor(self):
         return self._con.cursor()
+
+    def commit(self):
+        self._con.commit()
+
+    def insert(self, model, fields, values):
+        field_names = ', '.join([f.name for f in fields])
+        params = ', '.join(['?'] * len(values))
+        table_name = model.get_table_name()
+        dml = f'INSERT INTO {table_name} ({field_names}) VALUES ({params});'
+        cursor = self.cursor()
+        cursor.execute(dml, values)
+        self.commit()

@@ -35,10 +35,20 @@ class Model(BaseModel):
             result[name] = field.to_json(value)
         return result
 
+    def to_db(self):
+        all_fields = []
+        all_values = []
+        for name, field, value in self.enumerate_fields_values():
+            all_fields.append(field)
+            all_values.append(value)
+        return all_fields, all_values
+
     def enumerate_fields_values(self):
         for name, field in type(self).enumerate_fields():
             value = getattr(self, name)
             yield name, field, value
 
     def save(self):
-        self.db_engine.save(self)
+        model = type(self)
+        fields, values = self.to_db()
+        self.db_engine.insert(model, fields, values)

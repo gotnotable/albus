@@ -26,6 +26,14 @@ class BaseDbTest(TestCase):
         got = cursor.fetchone()
         self.assertIsNotNone(got, f"Column {column_name} is missing")
 
+    def assertRecordEqual(self, table_name, column_name, value):
+        query = f'SELECT * FROM {table_name} WHERE {column_name}=?;'
+        params = (value,)
+        cursor = self.engine.cursor()
+        cursor.execute(query, params)
+        got = cursor.fetchone()
+        self.assertIsNotNone(got, f"Record with {value} is missing")
+
 
 class CreateSimpleModelTest(BaseDbTest):
 
@@ -55,5 +63,13 @@ class ModelSaveTest(BaseDbTest):
             rank = IntegerField()
 
         self.Book = Book
-        self.engine = SQLite3Engine(in_memory=True)
+        self.engine = Book.db_engine
         self.engine.ddl.create_model(self.Book)
+
+    def test_save(self):
+        book = self.Book()
+        book.title = 'Only Title'
+        book.rank = 10
+        book.save()
+        self.assertRecordEqual('book', 'title', 'Only Title')
+        self.assertRecordEqual('book', 'rank', 10)
