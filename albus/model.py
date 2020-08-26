@@ -31,3 +31,6 @@ class Model(BaseModel):
         for name, field in type(self).enumerate_fields():
             value = getattr(self, name)
             yield name, field, value
+
+    def save(self):
+        self.db_engine.save(self)

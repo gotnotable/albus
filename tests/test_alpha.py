@@ -1,6 +1,7 @@
 from unittest import TestCase
 
-from albus.alpha import IntegerField, Model, StringField
+from albus.field import IntegerField, StringField
+from albus.model import Model
 
 
 class NoFieldsModelTest(TestCase):
