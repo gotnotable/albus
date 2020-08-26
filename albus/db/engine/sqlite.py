@@ -11,7 +11,15 @@ class SQLite3Architect(Architect):
         return cursor
 
     def create_model(self, model):
-        self.execute('CREATE TABLE book(title, b);')
+        table_name = model.get_table_name()
+        self.execute(f'CREATE TABLE {table_name}(id);')
+        for name, field in model.enumerate_fields():
+            self.create_field(field)
+        self._con.commit()
+
+    def create_field(self, field):
+        name = field.name
+        self.execute(f'ALTER TABLE book ADD COLUMN {name};')
         self._con.commit()
 
 

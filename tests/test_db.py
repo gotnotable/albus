@@ -19,7 +19,7 @@ class BaseDbTest(TestCase):
         self.assertIsNotNone(got, f"Table {table_name} is missing")
 
     def assertColumnExist(self, table_name, column_name):
-        query = 'SELECT * FROM pragma_table_info(?) WHERE name=?;'
+        query = 'SELECT name FROM pragma_table_info(?) WHERE name=?;'
         params = (table_name, column_name)
         cursor = self.engine.cursor()
         cursor.execute(query, params)
@@ -44,3 +44,4 @@ class CreateSimpleModelTest(BaseDbTest):
     def test_create_column(self):
         self.engine.ddl.create_model(self.Book)
         self.assertColumnExist('book', 'title')
+        self.assertColumnExist('book', 'rank')

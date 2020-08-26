@@ -6,6 +6,14 @@ from .db.engine import SQLite3Engine
 class BaseModel:
 
     __fields = defaultdict(dict)
+    table_name = None
+
+    @classmethod
+    def get_table_name(cls):
+        table_name = cls.table_name
+        if table_name is None:
+            table_name = cls.__name__.lower()
+        return table_name
 
     @classmethod
     def register_field(cls, field):
