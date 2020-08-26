@@ -5,8 +5,14 @@ from .base import Architect, Engine
 
 class SQLite3Architect(Architect):
 
+    def execute(self, query):
+        cursor = self._con.cursor()
+        cursor.execute(query)
+        return cursor
+
     def create_model(self, model):
-        pass
+        self.execute('CREATE TABLE book(a, b);')
+        self._con.commit()
 
 
 class SQLite3Engine(Engine):
