@@ -36,10 +36,6 @@ class SimpleModelTest(TestCase):
         book = self.Book()
         self.assertIsNotNone(book)
 
-    def test_initial_data(self):
-        book = self.Book(title='Foo Bar Book')
-        self.assertEqual(book.title, 'Foo Bar Book')
-
     def test_field_assignment(self):
         book = self.Book()
         book.title = 'New Title'
@@ -68,10 +64,6 @@ class DefaultFieldValueTest(TestCase):
     def test_new_model(self):
         book = self.Book()
         self.assertEqual(book.title, 'Untitled Book')
-
-    def test_override_initial(self):
-        book = self.Book(title='New Title')
-        self.assertEqual(book.title, 'New Title')
 
     def test_to_json(self):
         book = self.Book()
