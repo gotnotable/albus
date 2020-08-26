@@ -1,6 +1,8 @@
 # albus.model
 from collections import defaultdict
 
+from . import db
+
 
 class BaseModel:
 
@@ -52,15 +54,17 @@ class BaseField:
 
 class Field(BaseField):
 
+    db_type = None
+
     def to_json(self, value):
         return value
 
 
 class IntegerField(Field):
 
-    pass
+    db_type = db.IntegerType()
 
 
 class StringField(Field):
 
-    pass
+    db_type = db.StringType()
