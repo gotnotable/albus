@@ -1,19 +1,18 @@
 # albus.model
+from collections import defaultdict
 
 
 class BaseModel:
 
-    def __init_subclass__(cls):
-        super().__init_subclass__()
-        cls.__fields = {}
+    __fields = defaultdict(dict)
 
     @classmethod
     def register_field(cls, field):
-        cls.__fields[field.name] = field
+        cls.__fields[cls][field.name] = field
 
     @classmethod
     def enumerate_fields(cls):
-        for name, field in cls.__fields.items():
+        for name, field in cls.__fields[cls].items():
             yield name, field
 
 
@@ -21,7 +20,7 @@ class Model(BaseModel):
 
     def to_json(self):
         result = {}
-        for name, field, value in self.enumerate_field_values():
+        for name, field, value in self.enumerate_fields_values():
             result[name] = field.to_json(value)
         return result
 
@@ -53,7 +52,8 @@ class BaseField:
 
 class Field(BaseField):
 
-    pass
+    def to_json(self, value):
+        return value
 
 
 class IntegerField(Field):
