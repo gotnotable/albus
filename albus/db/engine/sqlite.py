@@ -11,7 +11,7 @@ class SQLite3Architect(Architect):
         return cursor
 
     def create_model(self, model):
-        self.execute('CREATE TABLE book(a, b);')
+        self.execute('CREATE TABLE book(title, b);')
         self._con.commit()
 
 
