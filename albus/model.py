@@ -1,6 +1,7 @@
 from collections import defaultdict
 
 from .db.engine import SQLite3Engine
+from .field import PrimaryKeyField
 
 
 class BaseModel:
@@ -16,31 +17,51 @@ class BaseModel:
         return table_name
 
     @classmethod
-    def register_field(cls, field):
-        cls.__fields[cls][field.name] = field
+    def register_field(cls, attr_name, field):
+        cls.__fields[cls][attr_name] = field
 
     @classmethod
     def enumerate_fields(cls):
-        for name, field in cls.__fields[cls].items():
+        all_fields = {}
+        model_mro = cls._get_model_mro()
+        for owner in reversed(model_mro):
+            owner_fields = cls.__fields[owner]
+            all_fields.update(owner_fields)
+        for name, field in all_fields.items():
             yield name, field
+
+    @classmethod
+    def _get_model_mro(cls):
+        found = []
+        for current in cls.mro():
+            if issubclass(current, Model):
+                found.append(current)
+        return found
 
 
 class Model(BaseModel):
 
+    pk = PrimaryKeyField()
+
     db_engine = SQLite3Engine(in_memory=True)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._persisted = False
 
     def to_json(self):
         result = {}
         for name, field, value in self.enumerate_fields_values():
-            result[name] = field.to_json(value)
+            result[field.name] = field.to_json(value)
         return result
 
     def to_db(self):
         all_fields = []
         all_values = []
-        for name, field, value in self.enumerate_fields_values():
-            all_fields.append(field)
-            all_values.append(value)
+        for attr_name, field, value in self.enumerate_fields_values():
+            if attr_name != 'pk':
+                all_fields.append(field)
+                all_values.append(value)
         return all_fields, all_values
 
     def enumerate_fields_values(self):
@@ -51,4 +72,9 @@ class Model(BaseModel):
     def save(self):
         model = type(self)
         fields, values = self.to_db()
-        self.db_engine.insert(model, fields, values)
+        if self._persisted:
+            self.db_engine.update(model, fields, values)
+        else:
+            new_identifier = self.db_engine.insert(model, fields, values)
+            self.pk = new_identifier
+            self._persisted = True

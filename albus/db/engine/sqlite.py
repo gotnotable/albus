@@ -1,4 +1,5 @@
 import sqlite3
+from time import time_ns
 
 from .base import Architect, Engine
 
@@ -19,8 +20,9 @@ class SQLite3Architect(Architect):
 
     def create_field(self, table_name, field):
         name = field.name
-        self.execute(f'ALTER TABLE {table_name} ADD COLUMN {name};')
-        self._con.commit()
+        if name != 'id':
+            self.execute(f'ALTER TABLE {table_name} ADD COLUMN {name};')
+            self._con.commit()
 
 
 class SQLite3Engine(Engine):
@@ -38,6 +40,9 @@ class SQLite3Engine(Engine):
             filename = 'albus.db'
         return filename
 
+    def _generate_pk(self, model):
+        return id(model) + time_ns()
+
     def connect(self):
         filename = self._get_filename()
         self._con = sqlite3.connect(filename)
@@ -49,10 +54,32 @@ class SQLite3Engine(Engine):
         self._con.commit()
 
     def insert(self, model, fields, values):
-        field_names = ', '.join([f.name for f in fields])
-        params = ', '.join(['?'] * len(values))
-        table_name = model.get_table_name()
-        dml = f'INSERT INTO {table_name} ({field_names}) VALUES ({params});'
+        pk = self._generate_pk(model)
+
+        names = ['id'] + [f.name for f in fields]
+        literals = [pk] + [v for v in values]
+
+        columns = ', '.join(names)
+        params = ', '.join(['?'] * len(literals))
+        table = model.get_table_name()
+        dml = f'INSERT INTO {table} ({columns}) VALUES ({params});'
+
+        cursor = self.cursor()
+        cursor.execute(dml, literals)
+        self.commit()
+
+        return pk
+
+    def update(self, model, fields, values):
+        table = model.get_table_name()
+        assignments_list = []
+        for current_field in fields:
+            column_name = current_field.name
+            current_assignment = f'\n\t{column_name} = ?'
+            assignments_list.append(current_assignment)
+        assignments = ','.join(assignments_list)
+        dml = f'UPDATE {table} SET {assignments};'
+
         cursor = self.cursor()
         cursor.execute(dml, values)
         self.commit()

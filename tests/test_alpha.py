@@ -19,7 +19,7 @@ class NoFieldsModelTest(TestCase):
     def test_to_json(self):
         new = self.FooModel()
         got = new.to_json()
-        expected = {}
+        expected = {'id': None}
         self.assertEqual(got, expected)
 
 
@@ -47,6 +47,7 @@ class SimpleModelTest(TestCase):
         book.rank = 10
         got = book.to_json()
         expected = {
+            'id': None,
             'title': 'Foo Bar Book',
             'rank': 10,
         }
@@ -69,6 +70,7 @@ class DefaultFieldValueTest(TestCase):
         book = self.Book()
         got = book.to_json()
         expected = {
+            'id': None,
             'title': 'Untitled Book',
         }
         self.assertEqual(got, expected)

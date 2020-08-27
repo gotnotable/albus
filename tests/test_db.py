@@ -7,8 +7,20 @@ from albus.model import Model
 
 class BaseDbTest(TestCase):
 
-    def setUp(self):
-        self.engine = SQLite3Engine(in_memory=True)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._engine = None
+
+    @property
+    def engine(self):
+        if self._engine is None:
+            self._engine = SQLite3Engine(in_memory=True)
+            self.addCleanup(self.cleanupEngine)
+        return self._engine
+
+    def cleanupEngine(self):
+        if self._engine is not None:
+            self._engine = None
 
     def assertTableExist(self, table_name):
         query = 'SELECT name from sqlite_master where type=? and name=?'
@@ -16,7 +28,7 @@ class BaseDbTest(TestCase):
         cursor = self.engine.cursor()
         cursor.execute(query, params)
         got = cursor.fetchone()
-        self.assertIsNotNone(got, f"Table {table_name} is missing")
+        self.assertIsNotNone(got, f"Table {table_name!r} is missing")
 
     def assertColumnExist(self, table_name, column_name):
         query = 'SELECT name FROM pragma_table_info(?) WHERE name=?;'
@@ -24,26 +36,34 @@ class BaseDbTest(TestCase):
         cursor = self.engine.cursor()
         cursor.execute(query, params)
         got = cursor.fetchone()
-        self.assertIsNotNone(got, f"Column {column_name} is missing")
+        self.assertIsNotNone(got, f"Column {column_name!r} is missing")
 
-    def assertRecordEqual(self, table_name, column_name, value):
+    def assertHasRecordEqual(self, table_name, column_name, value):
         query = f'SELECT * FROM {table_name} WHERE {column_name}=?;'
         params = (value,)
         cursor = self.engine.cursor()
         cursor.execute(query, params)
         got = cursor.fetchone()
-        self.assertIsNotNone(got, f"Record with {value} is missing")
+        self.assertIsNotNone(got, f"Record with {value!r} is missing")
+
+    def assertNoRecordEqual(self, table_name, column_name, value):
+        query = f'SELECT * FROM {table_name} WHERE {column_name}=?;'
+        params = (value,)
+        cursor = self.engine.cursor()
+        cursor.execute(query, params)
+        got = cursor.fetchone()
+        self.assertIsNone(got, f"Record with {value!r} was found")
 
 
 class CreateSimpleModelTest(BaseDbTest):
 
     def setUp(self):
         class Book(Model):
+            db_engine = self.engine
             title = StringField()
             rank = IntegerField()
 
         self.Book = Book
-        self.engine = SQLite3Engine(in_memory=True)
 
     def test_create_model(self):
         self.engine.ddl.create_model(self.Book)
@@ -59,11 +79,11 @@ class ModelSaveTest(BaseDbTest):
 
     def setUp(self):
         class Book(Model):
+            db_engine = self.engine
             title = StringField()
             rank = IntegerField()
 
         self.Book = Book
-        self.engine = Book.db_engine
         self.engine.ddl.create_model(self.Book)
 
     def test_save(self):
@@ -71,5 +91,16 @@ class ModelSaveTest(BaseDbTest):
         book.title = 'Only Title'
         book.rank = 10
         book.save()
-        self.assertRecordEqual('book', 'title', 'Only Title')
-        self.assertRecordEqual('book', 'rank', 10)
+        self.assertHasRecordEqual('book', 'title', 'Only Title')
+        self.assertHasRecordEqual('book', 'rank', 10)
+
+    def test_save_twice(self):
+        book = self.Book()
+        book.title = 'Only Title'
+        book.rank = 10
+        book.save()
+        book.title = 'New Title'
+        book.save()
+        self.assertNoRecordEqual('book', 'title', 'Only Title')
+        self.assertHasRecordEqual('book', 'title', 'New Title')
+        self.assertHasRecordEqual('book', 'rank', 10)
