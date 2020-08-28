@@ -22,6 +22,14 @@ class BaseDbTest(TestCase):
         if self._engine is not None:
             self._engine = None
 
+    def insertValues(self, table, columns, values):
+        cursor = self.engine.cursor()
+        columns = ', '.join(columns)
+        params = ', '.join(['?'] * len(values))
+        dml = f'INSERT INTO {table} ({columns}) VALUES ({params});'
+        cursor.execute(dml, values)
+        self.engine.commit()
+
     def assertTableExist(self, table_name):
         query = 'SELECT name from sqlite_master where type=? and name=?'
         params = ('table', table_name)
@@ -46,7 +54,7 @@ class BaseDbTest(TestCase):
         got = cursor.fetchone()
         self.assertIsNotNone(got, f"Record with {value!r} is missing")
 
-    def assertNoRecordEqual(self, table_name, column_name, value):
+    def assertHasNoRecordEqual(self, table_name, column_name, value):
         query = f'SELECT * FROM {table_name} WHERE {column_name}=?;'
         params = (value,)
         cursor = self.engine.cursor()
@@ -101,6 +109,36 @@ class ModelSaveTest(BaseDbTest):
         book.save()
         book.title = 'New Title'
         book.save()
-        self.assertNoRecordEqual('book', 'title', 'Only Title')
+        self.assertHasNoRecordEqual('book', 'title', 'Only Title')
         self.assertHasRecordEqual('book', 'title', 'New Title')
         self.assertHasRecordEqual('book', 'rank', 10)
+
+
+class ModelDeleteTest(BaseDbTest):
+
+    def setUp(self):
+        class Book(Model):
+            db_engine = self.engine
+            title = StringField()
+            rank = IntegerField()
+
+        self.Book = Book
+        self.engine.ddl.create_model(self.Book)
+
+    def test_save_and_delete(self):
+        book = self.Book()
+        book.title = 'Only one'
+        book.save()
+        book.destroy()
+        self.assertHasNoRecordEqual('book', 'title', 'Only Title')
+
+    def test_destroy_only_pk(self):
+        good_book = self.Book()
+        good_book.title = 'Good Title'
+        good_book.save()
+        bad_book = self.Book()
+        bad_book.title = 'Bad Title'
+        bad_book.save()
+        bad_book.destroy()
+        self.assertHasRecordEqual('book', 'title', 'Good Title')
+        self.assertHasNoRecordEqual('book', 'title', 'Bad Title')

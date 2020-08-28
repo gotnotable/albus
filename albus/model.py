@@ -1,6 +1,7 @@
 from collections import defaultdict
 
 from .db.engine import SQLite3Engine
+from .exceptions import AlbusError
 from .field import PrimaryKeyField
 
 
@@ -68,6 +69,15 @@ class Model(BaseModel):
         for name, field in type(self).enumerate_fields():
             value = getattr(self, name)
             yield name, field, value
+
+    def destroy(self):
+        if not self._persisted:
+            raise AlbusError(
+                "Cannot Destroy",
+                detail="Only persisted records can be destroyed.",
+            )
+        model = type(self)
+        self.db_engine.delete(model, self.pk)
 
     def save(self):
         model = type(self)

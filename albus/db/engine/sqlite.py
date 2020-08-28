@@ -1,5 +1,5 @@
 import sqlite3
-from time import time_ns
+from uuid import uuid4
 
 from .base import Architect, Engine
 
@@ -41,7 +41,7 @@ class SQLite3Engine(Engine):
         return filename
 
     def _generate_pk(self, model):
-        return id(model) + time_ns()
+        return uuid4().hex
 
     def connect(self):
         filename = self._get_filename()
@@ -82,4 +82,11 @@ class SQLite3Engine(Engine):
 
         cursor = self.cursor()
         cursor.execute(dml, values)
+        self.commit()
+
+    def delete(self, model, pk):
+        table = model.get_table_name()
+        dml = f'DELETE FROM {table} WHERE id=?;'
+        cursor = self.cursor()
+        cursor.execute(dml, [pk])
         self.commit()
