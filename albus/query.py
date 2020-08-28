@@ -1,5 +1,5 @@
 from collections import namedtuple
-
+from copy import copy
 
 Clause = namedtuple('Clause', ['field', 'operator', 'value'])
 
@@ -12,7 +12,11 @@ class BaseQuery:
 
     @property
     def plan(self):
-        return self._plan
+        snapshot = dict(
+            filters=copy(self._filters),
+            includes=copy(self._includes),
+        )
+        return snapshot
 
     def filter(self, clause):
         self._filters.append(clause)
@@ -59,6 +63,11 @@ class IncludeMixin:
         self.__include(field, 'less', value)
 
 
+class Query(BaseQuery, FilterMixin, IncludeMixin):
+
+    pass
+
+
 class CombineMixin:
 
     def add_alternative(self, query):
@@ -68,12 +77,12 @@ class CombineMixin:
         raise NotImplementedError()
 
 
-class Query(BaseQuery, FilterMixin, IncludeMixin, CombineMixin):
+class UserQuery(Query, CombineMixin):
+
+    pass
+
+
+class ModelQuery(UserQuery):
 
     def __init__(self, model):
         self._model = model
-
-
-class ModelQuery(Query):
-
-    pass
