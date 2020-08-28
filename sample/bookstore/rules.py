@@ -22,6 +22,8 @@ def delete_author(author_id):
     query.add_constraint(and_query)
     query.delete()
 
+    query.filter(Author.id, author_id)
+
     query = Author.new_query()
     query.equals('id', author_id)
     query.delete()
