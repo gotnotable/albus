@@ -14,6 +14,22 @@ def update_author_initials(author_id, initials):
 def delete_author(author_id):
     Author.filter(id=author_id).delete()
 
+    query = Author.new_query()
+    query.filter_equals('id', author_id)
+    query.filter_is_not_null('category')
+    query.filter_greater_than('published', 2015)
+    query.add_alternative(or_query)
+    query.add_constraint(and_query)
+    query.delete()
+
+    query = Author.new_query()
+    query.equals('id', author_id)
+    query.delete()
+
+    query = Author.new_query()
+    query.filter(Author.id == author_id)
+    query.filter(id=author_id)
+
 
 def destroy_author(author_id):
     author = Author.get(author_id)
