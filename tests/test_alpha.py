@@ -53,6 +53,11 @@ class SimpleModelTest(TestCase):
         }
         self.assertEqual(got, expected)
 
+    def test_initial_data(self):
+        book = self.Book(title='Foo', rank=5)
+        self.assertEqual(book.title, 'Foo')
+        self.assertEqual(book.rank, 5)
+
 
 class DefaultFieldValueTest(TestCase):
 

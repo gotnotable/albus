@@ -10,6 +10,11 @@ class BaseModel:
     __fields = defaultdict(dict)
     table_name = None
 
+    def __init__(self, *args, **kwargs):
+        for attr_name, field in self.enumerate_fields():
+            if attr_name in kwargs:
+                setattr(self, attr_name, kwargs[attr_name])
+
     @classmethod
     def get_table_name(cls):
         table_name = cls.table_name
