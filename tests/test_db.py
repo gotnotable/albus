@@ -142,3 +142,26 @@ class ModelDeleteTest(BaseDbTest):
         bad_book.destroy()
         self.assertHasRecordEqual('book', 'title', 'Good Title')
         self.assertHasNoRecordEqual('book', 'title', 'Bad Title')
+
+
+class ModelGetTest(BaseDbTest):
+
+    def setUp(self):
+        class Book(Model):
+            db_engine = self.engine
+            title = StringField()
+            rank = IntegerField()
+
+        self.Book = Book
+        self.engine.ddl.create_model(self.Book)
+
+        self.existing = Book()
+        self.existing.title = 'Existing Book'
+        self.existing.save()
+
+        self.existing_id = self.existing.pk
+
+    def test_get(self):
+        got = self.Book.get(self.existing_id)
+        self.assertEqual(got.pk, self.existing_id)
+        self.assertEqual(got.title, 'Existing Book')

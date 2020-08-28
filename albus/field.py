@@ -34,6 +34,9 @@ class Field(BaseField):
     def to_json(self, value):
         return value
 
+    def from_db(self, value):
+        return value
+
     def to_internal(self, value):
         return super().to_internal(value)
 

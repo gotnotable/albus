@@ -70,6 +70,17 @@ class Model(BaseModel):
             value = getattr(self, name)
             yield name, field, value
 
+    @classmethod
+    def get(cls, pk):
+        fields = [f for _, f in cls.enumerate_fields()]
+        found = cls.db_engine.fetch(cls, pk, fields)
+        assert len(fields) == len(found)
+        loaded = cls()
+        for idx, current_field in enumerate(fields):
+            current_value = current_field.from_db(found[idx])
+            current_field.__set__(loaded, current_value)
+        return loaded
+
     def destroy(self):
         if not self._persisted:
             raise AlbusError(

@@ -53,6 +53,22 @@ class SQLite3Engine(Engine):
     def commit(self):
         self._con.commit()
 
+    def fetch(self, model, pk, fields):
+        table = model.get_table_name()
+        columns = ', '.join([f.name for f in fields])
+        sql = f'SELECT {columns} from {table} WHERE id=?;'
+        cursor = self.cursor()
+        cursor.execute(sql, [pk])
+        row = cursor.fetchone()
+        cursor.close()
+        values = []
+        assert len(row) == len(fields)
+        for idx in range(len(fields)):
+            current_field = fields[idx]
+            current_value = current_field.from_db(row[idx])
+            values.append(current_value)
+        return values
+
     def insert(self, model, fields, values):
         pk = self._generate_pk(model)
 
@@ -67,6 +83,7 @@ class SQLite3Engine(Engine):
         cursor = self.cursor()
         cursor.execute(dml, literals)
         self.commit()
+        cursor.close()
 
         return pk
 
@@ -83,6 +100,7 @@ class SQLite3Engine(Engine):
         cursor = self.cursor()
         cursor.execute(dml, values)
         self.commit()
+        cursor.close()
 
     def delete(self, model, pk):
         table = model.get_table_name()
@@ -90,3 +108,4 @@ class SQLite3Engine(Engine):
         cursor = self.cursor()
         cursor.execute(dml, [pk])
         self.commit()
+        cursor.close()
