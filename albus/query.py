@@ -2,6 +2,8 @@ from collections import namedtuple
 from copy import copy
 
 Clause = namedtuple('Clause', ['field', 'operator', 'value'])
+Plan = namedtuple('Plan', ['filters', 'includes', 'nested_filters',
+                           'nested_includes'])
 
 
 class BaseQuery:
@@ -13,15 +15,11 @@ class BaseQuery:
         self._nested_includes = []
 
     def get_plan(self):
-        snapshot = dict(
-            filters=dict(
-                clauses=copy(self._filters),
-                nested=self._nested_filters,
-            ),
-            includes=dict(
-                clauses=copy(self._includes),
-                nested=self._nested_includes,
-            )
+        snapshot = Plan(
+            copy(self._filters),
+            copy(self._includes),
+            copy(self._nested_filters),
+            copy(self._nested_includes),
         )
         return snapshot
 
