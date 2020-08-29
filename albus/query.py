@@ -9,12 +9,19 @@ class BaseQuery:
     def __init__(self):
         self._filters = []
         self._includes = []
+        self._nested_filters = []
+        self._nested_includes = []
 
-    @property
-    def plan(self):
+    def get_plan(self):
         snapshot = dict(
-            filters=copy(self._filters),
-            includes=copy(self._includes),
+            filters=dict(
+                clauses=copy(self._filters),
+                nested=self._nested_filters,
+            ),
+            includes=dict(
+                clauses=copy(self._includes),
+                nested=self._nested_includes,
+            )
         )
         return snapshot
 
@@ -23,6 +30,14 @@ class BaseQuery:
 
     def include(self, clause):
         self._includes.append(clause)
+
+    def filter_query(self, query):
+        sub_plan = query.get_plan()
+        self._nested_filters.append(sub_plan)
+
+    def include_query(self, query):
+        sub_plan = query.get_plan()
+        self._nested_includes.append(sub_plan)
 
 
 class FilterMixin:
@@ -68,21 +83,7 @@ class Query(BaseQuery, FilterMixin, IncludeMixin):
     pass
 
 
-class CombineMixin:
-
-    def add_alternative(self, query):
-        raise NotImplementedError()
-
-    def add_constraint(self, query):
-        raise NotImplementedError()
-
-
-class UserQuery(Query, CombineMixin):
-
-    pass
-
-
-class ModelQuery(UserQuery):
+class ModelQuery(Query):
 
     def __init__(self, model):
         self._model = model
