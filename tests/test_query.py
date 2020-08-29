@@ -20,7 +20,7 @@ class BaseQueryTest(TestCase):
     def cleanupQuery(self):
         if self._query is not None:
             self._query = None
-    
+
     def assertPlanFiltersEqual(self, expected):
         got = self.query.get_plan()
         self.assertEqual(expected, got.filters)

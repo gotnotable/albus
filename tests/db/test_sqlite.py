@@ -165,3 +165,27 @@ class ModelGetTest(BaseDbTest):
         got = self.Book.get(self.existing_id)
         self.assertEqual(got.pk, self.existing_id)
         self.assertEqual(got.title, 'Existing Book')
+
+
+class SimpleQueryBuilderTest(BaseDbTest):
+
+    def setUp(self):
+        class Book(Model):
+            db_engine = self.engine
+            title = StringField()
+            rank = IntegerField()
+
+        self.Book = Book
+        self.engine.ddl.create_model(self.Book)
+
+        self.existing = Book()
+        self.existing.title = 'Existing Book'
+        self.existing.save()
+
+        self.existing_id = self.existing.pk
+
+        self.query = self.Book.new_query()
+        self.query.filter_equals('title',  'Existing Book')
+
+    def test_where_clause(self):
+        self.skipTest('Not implemented')

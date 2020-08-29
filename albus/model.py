@@ -3,6 +3,7 @@ from collections import defaultdict
 from .db.engine import SQLite3Engine
 from .exceptions import AlbusError
 from .field import PrimaryKeyField
+from .query import ModelQuery
 
 
 class BaseModel:
@@ -54,6 +55,10 @@ class Model(BaseModel):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._persisted = False
+
+    @classmethod
+    def new_query(cls) -> ModelQuery:
+        return ModelQuery(cls)
 
     def to_json(self):
         result = {}
