@@ -1,11 +1,12 @@
 from unittest import TestCase
 
 from albus.db.engine import SQLite3Engine
+from albus.db.engine.sqlite import SQLite3QueryBuilder
 from albus.field import IntegerField, StringField
 from albus.model import Model
 
 
-class BaseDbTest(TestCase):
+class SQLite3TestCase(TestCase):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -63,7 +64,7 @@ class BaseDbTest(TestCase):
         self.assertIsNone(got, f"Record with {value!r} was found")
 
 
-class CreateSimpleModelTest(BaseDbTest):
+class CreateSimpleModelTest(SQLite3TestCase):
 
     def setUp(self):
         class Book(Model):
@@ -83,7 +84,7 @@ class CreateSimpleModelTest(BaseDbTest):
         self.assertColumnExist('book', 'rank')
 
 
-class ModelSaveTest(BaseDbTest):
+class ModelSaveTest(SQLite3TestCase):
 
     def setUp(self):
         class Book(Model):
@@ -114,7 +115,7 @@ class ModelSaveTest(BaseDbTest):
         self.assertHasRecordEqual('book', 'rank', 10)
 
 
-class ModelDeleteTest(BaseDbTest):
+class ModelDeleteTest(SQLite3TestCase):
 
     def setUp(self):
         class Book(Model):
@@ -144,7 +145,7 @@ class ModelDeleteTest(BaseDbTest):
         self.assertHasNoRecordEqual('book', 'title', 'Bad Title')
 
 
-class ModelGetTest(BaseDbTest):
+class ModelGetTest(SQLite3TestCase):
 
     def setUp(self):
         class Book(Model):
@@ -167,7 +168,7 @@ class ModelGetTest(BaseDbTest):
         self.assertEqual(got.title, 'Existing Book')
 
 
-class SimpleQueryBuilderTest(BaseDbTest):
+class SimpleQueryBuilderTest(SQLite3TestCase):
 
     def setUp(self):
         class Book(Model):
@@ -178,14 +179,20 @@ class SimpleQueryBuilderTest(BaseDbTest):
         self.Book = Book
         self.engine.ddl.create_model(self.Book)
 
-        self.existing = Book()
-        self.existing.title = 'Existing Book'
-        self.existing.save()
-
-        self.existing_id = self.existing.pk
-
-        self.query = self.Book.new_query()
-        self.query.filter_equals('title',  'Existing Book')
+        self.book_1 = Book.create(title='First Book', rank=1)
+        self.book_2 = Book.create(title='Second Book', rank=2)
+        self.book_3 = Book.create(title='Third Book', rank=3)
 
     def test_where_clause(self):
-        self.skipTest('Not implemented')
+        query = self.Book.new_query()
+        query.filter_equals('title',  'Existing Book')
+        builder = SQLite3QueryBuilder(query)
+        where_clause = builder.build_where_clause()
+        self.assertEqual('WHERE title = ?', where_clause)
+
+    def test_where_params(self):
+        query = self.Book.new_query()
+        query.filter_equals('title',  'Existing Book')
+        builder = SQLite3QueryBuilder(query)
+        builder.build_where_clause()
+        self.assertIn(builder.params, 'Existing Book')

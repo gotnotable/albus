@@ -1,7 +1,7 @@
 import sqlite3
 from uuid import uuid4
 
-from .base import Architect, Engine
+from .base import Architect, Engine, QueryBuilder
 
 
 class SQLite3Architect(Architect):
@@ -23,6 +23,12 @@ class SQLite3Architect(Architect):
         if name != 'id':
             self.execute(f'ALTER TABLE {table_name} ADD COLUMN {name};')
             self._con.commit()
+
+
+class SQLite3QueryBuilder(QueryBuilder):
+
+    def build_where_clause(self):
+        return 'WHERE foo = ?'
 
 
 class SQLite3Engine(Engine):

@@ -5,6 +5,15 @@ class Architect:
         self._con = con
 
 
+class QueryBuilder:
+
+    def __init__(self, query):
+        self._query = query
+
+    def build_where_clause(self):
+        pass
+
+
 class Engine:
 
     ddl_class = None
