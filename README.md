@@ -1,6 +1,6 @@
 # albus
 
-![albus][wizard-hat]
+![albus][albus-header]
 
 This Python data mapper library was created thinking on simplicity learning
 and using it. As opposed to other ORM options, this one will not be as powerful
@@ -35,4 +35,4 @@ for current in results:
 ```
 
 
-[wizard-hat]: https://raw.githubusercontent.com/gotnotable/albus/master/docs/wizard-hat.jpg "Wizard Hat"
+[albus-header]: https://raw.githubusercontent.com/gotnotable/albus/master/docs/wizard-top.jpg "Albus Header"
