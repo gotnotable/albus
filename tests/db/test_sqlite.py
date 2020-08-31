@@ -231,3 +231,11 @@ class SimpleSelectTest(SQLite3TestCase):
         got = set([r.rank for r in results])
         expected = set([10, 20])
         self.assertEqual(got, expected)
+
+    def test_select_query_ids(self):
+        query = self.Book.new_query()
+        query.filter_equals('title',  'Existing Book')
+        results = query.select()
+        got = set([r.pk for r in results])
+        expected = set([self.book_1.pk, self.book_2.pk])
+        self.assertEqual(got, expected)
