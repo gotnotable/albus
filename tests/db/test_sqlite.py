@@ -1,3 +1,4 @@
+from textwrap import dedent
 from unittest import TestCase
 
 from albus.db.engine import SQLite3Engine
@@ -168,7 +169,7 @@ class ModelGetTest(SQLite3TestCase):
         self.assertEqual(got.title, 'Existing Book')
 
 
-class SimpleQueryBuilderTest(SQLite3TestCase):
+class SimpleSelectTest(SQLite3TestCase):
 
     def setUp(self):
         class Book(Model):
@@ -210,3 +211,15 @@ class SimpleQueryBuilderTest(SQLite3TestCase):
         select = SQLite3Select.from_query(query)
         from_clause = select.build_from_clause()
         self.assertEqual('FROM book', from_clause)
+
+    def test_select_statement(self):
+        query = self.Book.new_query()
+        query.filter_equals('title',  'Existing Book')
+        select = SQLite3Select.from_query(query)
+        sql = select.build_sql()
+        expected = dedent("""
+        SELECT id, title, rank
+        FROM book
+        WHERE title = ?
+        """).strip()
+        self.assertEqual(sql, expected)

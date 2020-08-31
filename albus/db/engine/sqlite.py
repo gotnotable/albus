@@ -1,5 +1,6 @@
 import sqlite3
-from typing import Iterator, List, Type, TypeVar, Sequence
+from textwrap import dedent
+from typing import Iterator, List, Sequence, Type, TypeVar
 from uuid import uuid4
 
 from ...query import Clause
@@ -89,6 +90,16 @@ class SQLite3Select(SelectStatement):
             sources = ', '.join(self.plan.sources)
             return f'FROM {sources}'
         return ''
+
+    def build_sql(self):
+        fields = self.build_fields()
+        from_clause = self.build_from_clause()
+        where_clause = self.build_where_clause()
+        return dedent(f"""
+        SELECT {fields}
+        {from_clause}
+        {where_clause}
+        """).strip()
 
 
 class SQLite3Engine(Engine):
