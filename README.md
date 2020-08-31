@@ -1,5 +1,3 @@
-# albus
-
 ![albus][albus-header]
 
 This Python data mapper library was created thinking on simplicity learning
