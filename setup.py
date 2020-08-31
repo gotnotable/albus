@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="albus",
-    version="0.0.1",
+    version="0.0.3a",
     author="Rafael Pivato",
     author_email="rafael@gotnotable.com",
     description="Small and dummy DB-API 2 data mapper",
