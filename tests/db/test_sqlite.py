@@ -203,3 +203,10 @@ class SimpleQueryBuilderTest(SQLite3TestCase):
         select = SQLite3Select.from_query(query)
         fields = select.build_fields()
         self.assertEqual('id, title, rank', fields)
+
+    def test_from_clause(self):
+        query = self.Book.new_query()
+        query.filter_equals('title',  'Existing Book')
+        select = SQLite3Select.from_query(query)
+        from_clause = select.build_from_clause()
+        self.assertEqual('FROM book', from_clause)

@@ -84,6 +84,12 @@ class SQLite3Select(SelectStatement):
         columns = ', '.join(self.plan.columns)
         return columns
 
+    def build_from_clause(self):
+        if self.plan.sources:
+            sources = ', '.join(self.plan.sources)
+            return f'FROM {sources}'
+        return ''
+
 
 class SQLite3Engine(Engine):
 

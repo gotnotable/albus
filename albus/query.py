@@ -1,6 +1,6 @@
-from typing import Sequence
 from collections import namedtuple
 from copy import copy
+from typing import List, Sequence
 
 Plan = namedtuple('Plan', ['filters', 'includes', 'nested_filters',
                            'nested_includes'])
@@ -28,11 +28,13 @@ class Plan:
 
     def __init__(self,
                  columns: Sequence[str],
+                 sources: Sequence[str],
                  filters: Sequence[Clause],
                  includes: Sequence[Clause],
                  nested_filters: Sequence['Plan'],
                  nested_includes: Sequence['Plan']):
         self.columns = copy(columns)
+        self.sources = copy(sources)
         self.filters = copy(filters)
         self.includes = copy(includes)
         self.nested_filters = copy(nested_filters)
@@ -43,6 +45,7 @@ class Plan:
             return False
         same_fields = (
             self.columns == other.columns
+            and self.sources == other.sources
             and self.filters == other.filters
             and self.includes == other.includes
             and self.nested_filters == other.nested_filters
@@ -61,8 +64,10 @@ class BaseQuery:
 
     def get_plan(self):
         columns = self.get_columns()
+        sources = self.get_sources()
         snapshot = Plan(
             columns,
+            sources,
             copy(self._filters),
             copy(self._includes),
             copy(self._nested_filters),
@@ -70,8 +75,11 @@ class BaseQuery:
         )
         return snapshot
 
-    def get_columns(self):
+    def get_columns(self) -> List[str]:
         return ['*']
+
+    def get_sources(self) -> List:
+        return []
 
     def filter(self, clause):
         self._filters.append(clause)
@@ -137,8 +145,16 @@ class ModelQuery(Query):
         super().__init__()
         self._model = model
 
+    @property
+    def model(self):
+        return self._model
+
     def get_columns(self):
         columns = []
         for attr_name, field in self._model.enumerate_fields():
             columns.append(field.name)
         return columns
+
+    def get_sources(self) -> List:
+        table_name = self._model.get_table_name()
+        return [table_name]
