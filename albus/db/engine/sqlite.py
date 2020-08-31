@@ -1,7 +1,9 @@
 import sqlite3
+from typing import Iterator, List, Type, TypeVar, Sequence
 from uuid import uuid4
 
-from .base import Architect, Engine, QueryBuilder
+from ...query import Clause
+from .base import Architect, Engine, SelectStatement
 
 
 class SQLite3Architect(Architect):
@@ -25,10 +27,58 @@ class SQLite3Architect(Architect):
             self._con.commit()
 
 
-class SQLite3QueryBuilder(QueryBuilder):
+class SQLite3Clause(Clause):
+
+    CLS = TypeVar('SQLite3Clause', bound='SQLite3Clause')
+
+    def __init__(self, field, operator, value):
+        super().__init__(field, operator, value)
+
+    @classmethod
+    def from_clause(cls: Type[CLS], clause: Clause) -> CLS:
+        return cls(clause.field, clause.operator, clause.value)
+
+    def to_sql(self):
+        return f'{self.field} = ?'
+
+
+class SQLite3Select(SelectStatement):
+
+    def iterate_filters(self) -> Iterator[Clause]:
+        for current in self.plan.filters:
+            yield SQLite3Clause.from_clause(current)
+
+    def iterate_includes(self) -> Iterator[Clause]:
+        for current in self.plan.includes:
+            yield SQLite3Clause.from_clause(current)
+
+    def _build_where_clause_part(self, clauses: Sequence[Clause],
+                                 operator: str) -> str:
+        parts = []
+        for current in clauses:
+            parts.append(current.to_sql())
+            self.append_param(current.value)
+        sql = f' {operator} '.join(parts)
+        return sql
+
+    def build_where_filters(self):
+        filters = list(self.iterate_filters())
+        return self._build_where_clause_part(filters, 'AND')
+
+    def build_where_includes(self):
+        includes = list(self.iterate_includes())
+        return self._build_where_clause_part(includes, 'OR')
 
     def build_where_clause(self):
-        return 'WHERE foo = ?'
+        filters = self.build_where_filters()
+        includes = self.build_where_includes()
+        not_empty = []
+        if filters:
+            not_empty.append(filters)
+        if includes:
+            not_empty.append(includes)
+        condition = ' OR '.join(not_empty)
+        return f'WHERE {condition}'
 
 
 class SQLite3Engine(Engine):

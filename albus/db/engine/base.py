@@ -1,3 +1,8 @@
+from typing import Any, List, Type, TypeVar
+
+from ...query import Plan, Query
+
+
 class Architect:
 
     def __init__(self, con):
@@ -5,13 +10,32 @@ class Architect:
         self._con = con
 
 
-class QueryBuilder:
+class SelectStatement:
 
-    def __init__(self, query):
-        self._query = query
+    CLS = TypeVar('SelectStatement', bound='SelectStatement')
+
+    def __init__(self, query_plan):
+        self._plan = query_plan
+        self._params = []
+
+    @classmethod
+    def from_query(cls: Type[CLS], query: Query) -> CLS:
+        query_plan = query.get_plan()
+        return cls(query_plan)
+
+    @property
+    def plan(self) -> Plan:
+        return self._plan
+
+    @property
+    def params(self) -> List[Any]:
+        return self._params
+
+    def append_param(self, value):
+        self._params.append(value)
 
     def build_where_clause(self):
-        pass
+        raise NotImplementedError()
 
 
 class Engine:

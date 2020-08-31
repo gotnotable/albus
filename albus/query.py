@@ -1,9 +1,26 @@
 from collections import namedtuple
 from copy import copy
 
-Clause = namedtuple('Clause', ['field', 'operator', 'value'])
 Plan = namedtuple('Plan', ['filters', 'includes', 'nested_filters',
                            'nested_includes'])
+
+
+class Clause:
+
+    def __init__(self, field, operator, value):
+        self.field = field
+        self.operator = operator
+        self.value = value
+
+    def __eq__(self, other):
+        if not isinstance(other, Clause):
+            return False
+        same_fields = (
+            self.field == other.field
+            and self.operator == other.operator
+            and self.value == other.value
+        )
+        return same_fields
 
 
 class BaseQuery:

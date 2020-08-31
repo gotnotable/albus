@@ -1,7 +1,7 @@
 from unittest import TestCase
 
 from albus.db.engine import SQLite3Engine
-from albus.db.engine.sqlite import SQLite3QueryBuilder
+from albus.db.engine.sqlite import SQLite3Select
 from albus.field import IntegerField, StringField
 from albus.model import Model
 
@@ -186,13 +186,13 @@ class SimpleQueryBuilderTest(SQLite3TestCase):
     def test_where_clause(self):
         query = self.Book.new_query()
         query.filter_equals('title',  'Existing Book')
-        builder = SQLite3QueryBuilder(query)
-        where_clause = builder.build_where_clause()
+        select = SQLite3Select.from_query(query)
+        where_clause = select.build_where_clause()
         self.assertEqual('WHERE title = ?', where_clause)
 
     def test_where_params(self):
         query = self.Book.new_query()
         query.filter_equals('title',  'Existing Book')
-        builder = SQLite3QueryBuilder(query)
-        builder.build_where_clause()
-        self.assertIn(builder.params, 'Existing Book')
+        select = SQLite3Select.from_query(query)
+        select.build_where_clause()
+        self.assertIn('Existing Book', select.params)

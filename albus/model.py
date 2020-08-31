@@ -81,6 +81,12 @@ class Model(BaseModel):
             yield name, field, value
 
     @classmethod
+    def create(cls, **kwargs):
+        new = cls(**kwargs)
+        new.save()
+        return new
+
+    @classmethod
     def get(cls, pk):
         fields = [f for _, f in cls.enumerate_fields()]
         found = cls.db_engine.fetch(cls, pk, fields)
