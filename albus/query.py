@@ -1,3 +1,4 @@
+from typing import Sequence
 from collections import namedtuple
 from copy import copy
 
@@ -23,6 +24,33 @@ class Clause:
         return same_fields
 
 
+class Plan:
+
+    def __init__(self,
+                 columns: Sequence[str],
+                 filters: Sequence[Clause],
+                 includes: Sequence[Clause],
+                 nested_filters: Sequence['Plan'],
+                 nested_includes: Sequence['Plan']):
+        self.columns = copy(columns)
+        self.filters = copy(filters)
+        self.includes = copy(includes)
+        self.nested_filters = copy(nested_filters)
+        self.nested_includes = copy(nested_includes)
+
+    def __eq__(self, other):
+        if not isinstance(other, Plan):
+            return False
+        same_fields = (
+            self.columns == other.columns
+            and self.filters == other.filters
+            and self.includes == other.includes
+            and self.nested_filters == other.nested_filters
+            and self.nested_includes == other.nested_includes
+        )
+        return same_fields
+
+
 class BaseQuery:
 
     def __init__(self):
@@ -32,13 +60,18 @@ class BaseQuery:
         self._nested_includes = []
 
     def get_plan(self):
+        columns = self.get_columns()
         snapshot = Plan(
+            columns,
             copy(self._filters),
             copy(self._includes),
             copy(self._nested_filters),
             copy(self._nested_includes),
         )
         return snapshot
+
+    def get_columns(self):
+        return ['*']
 
     def filter(self, clause):
         self._filters.append(clause)
@@ -103,3 +136,9 @@ class ModelQuery(Query):
     def __init__(self, model):
         super().__init__()
         self._model = model
+
+    def get_columns(self):
+        columns = []
+        for attr_name, field in self._model.enumerate_fields():
+            columns.append(field.name)
+        return columns

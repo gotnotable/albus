@@ -196,3 +196,10 @@ class SimpleQueryBuilderTest(SQLite3TestCase):
         select = SQLite3Select.from_query(query)
         select.build_where_clause()
         self.assertIn('Existing Book', select.params)
+
+    def test_fields(self):
+        query = self.Book.new_query()
+        query.filter_equals('title',  'Existing Book')
+        select = SQLite3Select.from_query(query)
+        fields = select.build_fields()
+        self.assertEqual('id, title, rank', fields)

@@ -80,6 +80,10 @@ class SQLite3Select(SelectStatement):
         condition = ' OR '.join(not_empty)
         return f'WHERE {condition}'
 
+    def build_fields(self):
+        columns = ', '.join(self.plan.columns)
+        return columns
+
 
 class SQLite3Engine(Engine):
 
