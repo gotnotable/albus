@@ -158,3 +158,13 @@ class ModelQuery(Query):
     def get_sources(self) -> List:
         table_name = self._model.get_table_name()
         return [table_name]
+
+    def select(self):
+        results = []
+        selected = self.model.db_engine.select_query(self)
+        columns = self.get_columns()
+        for row in selected:
+            fields_values = dict(zip(columns, row))
+            current = self._model(**fields_values)
+            results.append(current)
+        return results

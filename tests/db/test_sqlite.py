@@ -180,9 +180,9 @@ class SimpleSelectTest(SQLite3TestCase):
         self.Book = Book
         self.engine.ddl.create_model(self.Book)
 
-        self.book_1 = Book.create(title='First Book', rank=1)
-        self.book_2 = Book.create(title='Second Book', rank=2)
-        self.book_3 = Book.create(title='Third Book', rank=3)
+        self.book_1 = Book.create(title='Existing Book', rank=10)
+        self.book_2 = Book.create(title='Existing Book', rank=20)
+        self.book_3 = Book.create(title='Third Book', rank=30)
 
     def test_where_clause(self):
         query = self.Book.new_query()
@@ -223,3 +223,11 @@ class SimpleSelectTest(SQLite3TestCase):
         WHERE title = ?
         """).strip()
         self.assertEqual(sql, expected)
+
+    def test_select_query_titles(self):
+        query = self.Book.new_query()
+        query.filter_equals('title',  'Existing Book')
+        results = query.select()
+        got = set([r.rank for r in results])
+        expected = set([10, 20])
+        self.assertEqual(got, expected)

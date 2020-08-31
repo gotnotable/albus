@@ -1,6 +1,6 @@
 import sqlite3
 from textwrap import dedent
-from typing import Iterator, List, Sequence, Type, TypeVar
+from typing import Iterator, Sequence, Type, TypeVar
 from uuid import uuid4
 
 from ...query import Clause
@@ -129,6 +129,16 @@ class SQLite3Engine(Engine):
 
     def commit(self):
         self._con.commit()
+
+    def select_query(self, query):
+        select = SQLite3Select.from_query(query)
+        sql = select.build_sql()
+        params = select.params
+        cursor = self.cursor()
+        cursor.execute(sql, params)
+        all_rows = cursor.fetchall()
+        cursor.close()
+        return all_rows
 
     def fetch(self, model, pk, fields):
         table = model.get_table_name()
