@@ -5,11 +5,13 @@ class BaseField:
 
     def __init__(self, default=None, name=None):
         self.__data = {}
+        self.attr_name = None
         self.name = name
         self.default = default
 
     def __set_name__(self, owner, name):
         self.owner = owner
+        self.attr_name = name
         if self.name is None:
             self.name = name
         owner.register_field(name, self)

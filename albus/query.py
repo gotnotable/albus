@@ -155,6 +155,12 @@ class ModelQuery(Query):
             columns.append(field.name)
         return columns
 
+    def get_attributes(self):
+        attributes = []
+        for attr_name, field in self._model.enumerate_fields():
+            attributes.append(attr_name)
+        return attributes
+
     def get_sources(self) -> List:
         table_name = self._model.get_table_name()
         return [table_name]
@@ -162,9 +168,9 @@ class ModelQuery(Query):
     def select(self):
         results = []
         selected = self.model.db_engine.select_query(self)
-        columns = self.get_columns()
+        attributes = self.get_attributes()
         for row in selected:
-            fields_values = dict(zip(columns, row))
+            fields_values = dict(zip(attributes, row))
             current = self._model(**fields_values)
             results.append(current)
         return results
