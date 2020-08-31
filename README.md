@@ -35,4 +35,4 @@ for current in results:
 ```
 
 
-[albus-header]: https://raw.githubusercontent.com/gotnotable/albus/master/docs/albus-top.jpg "Albus Header"
+[albus-header]: https://raw.githubusercontent.com/gotnotable/albus/master/docs/albus-top.png "Albus Header"
