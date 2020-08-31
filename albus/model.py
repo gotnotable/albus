@@ -57,6 +57,12 @@ class Model(BaseModel):
         self._persisted = False
 
     @classmethod
+    def from_db(cls, **kwargs):
+        loaded = cls(**kwargs)
+        loaded._persisted = True
+        return loaded
+
+    @classmethod
     def new_query(cls) -> ModelQuery:
         return ModelQuery(cls)
 

@@ -171,6 +171,6 @@ class ModelQuery(Query):
         attributes = self.get_attributes()
         for row in selected:
             fields_values = dict(zip(attributes, row))
-            current = self._model(**fields_values)
+            current = self._model.from_db(**fields_values)
             results.append(current)
         return results

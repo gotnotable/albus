@@ -239,3 +239,4 @@ class SimpleSelectTest(SQLite3TestCase):
         got = set([r.pk for r in results])
         expected = set([self.book_1.pk, self.book_2.pk])
         self.assertEqual(got, expected)
+        self.assertTrue(results[0]._persisted)
