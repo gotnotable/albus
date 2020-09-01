@@ -9,10 +9,18 @@ from .base import Architect, Engine, SelectStatement
 
 class SQLite3Architect(Architect):
 
-    def execute(self, query):
+    def execute(self, query, params=None):
         cursor = self._con.cursor()
-        cursor.execute(query)
+        cursor.execute(query, params or [])
         return cursor
+
+    def was_model_created(self, model):
+        table_name = model.get_table_name()
+        sql = 'SELECT name FROM sqlite_master WHERE type=? AND name=?;'
+        cursor = self.execute(sql, ['table', table_name])
+        results = cursor.fetchone()
+        cursor.close()
+        return results is not None
 
     def create_model(self, model):
         table_name = model.get_table_name()

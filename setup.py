@@ -23,4 +23,7 @@ setuptools.setup(
         "Topic :: Software Development :: Libraries",
     ],
     python_requires='>=3.6',
+    install_requires=[
+        'psycopg2',
+    ],
 )
